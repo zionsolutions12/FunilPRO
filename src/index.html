@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FunilPro — Mini CRM de Funil de Vendas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            funil: {
+              novo:        '#64748b',
+              qualificado: '#3b82f6',
+              proposta:    '#8b5cf6',
+              negociacao:  '#f59e0b',
+              fechado:     '#10b981',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- ===== Cabeçalho ===== -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-lg shadow-md">F</div>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 leading-none">FunilPro</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Mini CRM de Funil de Vendas</p>
+        </div>
+        <span id="badge-modo" class="ml-2 text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700">modo demo</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btn-ia" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-semibold shadow hover:opacity-90 transition">
+          <span>✨</span> Análise IA
+        </button>
+        <button id="btn-novo" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold shadow hover:bg-slate-700 transition">
+          <span class="text-lg leading-none">+</span> Novo Lead
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Métricas ===== -->
+  <section class="max-w-[1400px] mx-auto px-6 pt-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Total de Leads</p>
+        <p id="m-total" class="text-2xl font-bold text-slate-900 mt-1">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Valor em Pipeline</p>
+        <p id="m-valor" class="text-2xl font-bold text-emerald-600 mt-1">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Ticket Médio</p>
+        <p id="m-ticket" class="text-2xl font-bold text-slate-900 mt-1">—</p>
+      </div>
+      <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Taxa de Conversão</p>
+        <p id="m-conversao" class="text-2xl font-bold text-indigo-600 mt-1">—</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Pipeline (Kanban) ===== -->
+  <main class="max-w-[1400px] mx-auto px-6 py-6">
+    <div id="pipeline" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-start"></div>
+  </main>
+
+  <!-- ===== Modal: Novo/Editar Lead ===== -->
+  <div id="modal-lead" class="fixed inset-0 bg-black/40 z-40 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <h2 id="modal-titulo" class="text-lg font-bold text-slate-900">Novo Lead</h2>
+        <button data-fechar class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <form id="form-lead" class="px-6 py-5 space-y-4">
+        <input type="hidden" id="f-id" />
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Nome *</label>
+          <input id="f-nome" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1">Email</label>
+            <input id="f-email" type="email" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1">Telefone</label>
+            <input id="f-telefone" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1">Empresa</label>
+          <input id="f-empresa" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1">Valor (R$)</label>
+            <input id="f-valor" type="number" min="0" step="100" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1">Responsável</label>
+            <input id="f-responsavel" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1">Estágio</label>
+            <select id="f-estagio" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="novo">Novo</option>
+              <option value="qualificado">Qualificado</option>
+              <option value="proposta">Proposta</option>
+              <option value="negociacao">Negociação</option>
+              <option value="fechado">Fechado</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1">Temperatura</label>
+            <select id="f-temperatura" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-indigo-500 outline-none">
+              <option value="hot">🔥 Hot</option>
+              <option value="warm">🌤️ Warm</option>
+              <option value="cold">❄️ Cold</option>
+              <option value="enterprise">🏢 Enterprise</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-2">
+          <button type="button" id="btn-excluir" class="text-sm text-red-600 hover:text-red-700 font-medium hidden">Excluir lead</button>
+          <div class="flex gap-2 ml-auto">
+            <button type="button" data-fechar class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">Cancelar</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700">Salvar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Modal: Análise IA ===== -->
+  <div id="modal-ia" class="fixed inset-0 bg-black/40 z-40 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">✨ Análise do Pipeline por IA</h2>
+        <button data-fechar class="text-slate-400 hover:text-slate-700 text-2xl leading-none">&times;</button>
+      </div>
+      <div id="ia-conteudo" class="px-6 py-5 text-sm leading-relaxed text-slate-700 whitespace-pre-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ===== Toast ===== -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+    <div class="bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-lg"></div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

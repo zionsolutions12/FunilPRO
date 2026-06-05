@@ -1,0 +1,93 @@
+/* ============================================================
+   FunilPro — estilos customizados (complemento ao Tailwind)
+   ============================================================ */
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Coluna do pipeline */
+.coluna {
+  display: flex;
+  flex-direction: column;
+  background: #f1f5f9;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  min-height: 200px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Realce ao arrastar um card sobre a coluna */
+.coluna.drag-over {
+  background: #e0e7ff;
+  border-color: #818cf8;
+  border-style: dashed;
+}
+
+/* Lista de cards rolável dentro da coluna */
+.coluna-lista {
+  flex: 1;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 60px;
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
+}
+
+/* Card do lead */
+.card {
+  background: #fff;
+  border-radius: 0.625rem;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem;
+  cursor: grab;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.15s ease, transform 0.15s ease, opacity 0.15s ease;
+}
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+.card:active {
+  cursor: grabbing;
+}
+.card.dragging {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+/* Badges de temperatura */
+.temp {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.45rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+.temp-hot        { background: #fee2e2; color: #b91c1c; }
+.temp-warm       { background: #fef3c7; color: #b45309; }
+.temp-cold       { background: #dbeafe; color: #1d4ed8; }
+.temp-enterprise { background: #ede9fe; color: #6d28d9; }
+
+/* Scrollbar discreta */
+.coluna-lista::-webkit-scrollbar { width: 6px; }
+.coluna-lista::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.coluna-lista::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* Animação de entrada dos modais */
+.modal-show { display: flex !important; }
+
+/* Anima toast */
+#toast.show {
+  display: block;
+  animation: toast-in 0.2s ease;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

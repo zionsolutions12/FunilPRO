@@ -33,3 +33,7 @@ Win64/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# ===== Supabase CLI =====
+supabase/.temp/
+supabase/.branches/
