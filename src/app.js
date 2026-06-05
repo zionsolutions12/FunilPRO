@@ -39,6 +39,29 @@ const DEMO_LEADS = [
   { nome: 'Larissa Martins',   empresa: 'Moda Urbana Confecções', valor: 11200, estagio: 'negociacao',  temperatura: 'enterprise', responsavel: 'Ana Paula',     email: 'larissa@modaurbana.com.br',        telefone: '(81) 99655-1122' },
   { nome: 'Rodrigo Santos',    empresa: 'Café da Serra',          valor: 4800,  estagio: 'fechado',     temperatura: 'hot',        responsavel: 'Carlos Mendes', email: 'rodrigo@cafedaserra.com.br',       telefone: '(54) 98455-9988' },
   { nome: 'Beatriz Gomes',     empresa: 'Floricultura Bella',     valor: 5200,  estagio: 'fechado',     temperatura: 'warm',       responsavel: 'Ana Paula',     email: 'beatriz@floriculturabella.com.br', telefone: '(11) 97233-8899' },
+  // ----- Leads adicionais (datas espalhadas para o gráfico de faturamento) -----
+  { nome: 'Carlos Eduardo Pinto', empresa: 'Pinto Advocacia',        valor: 8500,  estagio: 'qualificado', temperatura: 'warm',       responsavel: 'Ana Paula',     email: 'carlos@pintoadv.com.br',        telefone: '(11) 98111-2233', criado_em: '2026-01-08T10:00:00Z' },
+  { nome: 'Sandra Regina Alves',  empresa: 'Alves Contabilidade',    valor: 6200,  estagio: 'fechado',     temperatura: 'warm',       responsavel: 'Carlos Mendes', email: 'sandra@alvescont.com.br',       telefone: '(21) 98222-3344', criado_em: '2026-01-14T10:00:00Z' },
+  { nome: 'Marcos Vinícius Dias', empresa: 'Dias Tecnologia',        valor: 22000, estagio: 'negociacao',  temperatura: 'hot',        responsavel: 'Ana Paula',     email: 'marcos@diastech.com.br',        telefone: '(31) 98333-4455', criado_em: '2026-01-21T10:00:00Z' },
+  { nome: 'Aline Cristina Ramos', empresa: 'Studio Aline',           valor: 3500,  estagio: 'novo',        temperatura: 'cold',       responsavel: 'Carlos Mendes', email: 'aline@studioaline.com',         telefone: '(41) 98444-5566', criado_em: '2026-01-27T10:00:00Z' },
+  { nome: 'Paulo Henrique Cruz',  empresa: 'Cruz Logística',         valor: 14000, estagio: 'proposta',    temperatura: 'hot',        responsavel: 'Ana Paula',     email: 'paulo@cruzlog.com.br',          telefone: '(51) 98555-6677', criado_em: '2026-02-04T10:00:00Z' },
+  { nome: 'Vanessa Lima',         empresa: 'Boutique Vanessa',       valor: 4100,  estagio: 'fechado',     temperatura: 'warm',       responsavel: 'Carlos Mendes', email: 'vanessa@boutiquevanessa.com',   telefone: '(11) 98666-7788', criado_em: '2026-02-10T10:00:00Z' },
+  { nome: 'Roberto Carlos Mota',  empresa: 'Mota Imóveis',           valor: 17500, estagio: 'qualificado', temperatura: 'hot',        responsavel: 'Ana Paula',     email: 'roberto@motaimoveis.com.br',    telefone: '(62) 98777-8899', criado_em: '2026-02-17T10:00:00Z' },
+  { nome: 'Débora Santos',        empresa: 'Clínica Débora',         valor: 9800,  estagio: 'proposta',    temperatura: 'warm',       responsavel: 'Carlos Mendes', email: 'debora@clinicadebora.com.br',   telefone: '(85) 98888-9900', criado_em: '2026-02-25T10:00:00Z' },
+  { nome: 'Felipe Andrade',       empresa: 'Andrade Esportes',       valor: 5400,  estagio: 'novo',        temperatura: 'warm',       responsavel: 'Ana Paula',     email: 'felipe@andradeesportes.com',    telefone: '(48) 98999-0011', criado_em: '2026-03-03T10:00:00Z' },
+  { nome: 'Tatiane Moreira',      empresa: 'Moreira Cosméticos',     valor: 7600,  estagio: 'qualificado', temperatura: 'cold',       responsavel: 'Carlos Mendes', email: 'tatiane@moreiracosm.com.br',    telefone: '(19) 98010-1122', criado_em: '2026-03-11T10:00:00Z' },
+  { nome: 'Ricardo Nunes',        empresa: 'Nunes Engenharia',       valor: 28000, estagio: 'negociacao',  temperatura: 'enterprise', responsavel: 'Ana Paula',     email: 'ricardo@nuneseng.com.br',       telefone: '(54) 98121-2233', criado_em: '2026-03-18T10:00:00Z' },
+  { nome: 'Cláudia Barbosa',      empresa: 'Barbosa Eventos',        valor: 11500, estagio: 'fechado',     temperatura: 'hot',        responsavel: 'Carlos Mendes', email: 'claudia@barbosaeventos.com.br', telefone: '(81) 98232-3344', criado_em: '2026-03-26T10:00:00Z' },
+  { nome: 'Anderson Teixeira',    empresa: 'Teixeira Auto Center',   valor: 8200,  estagio: 'proposta',    temperatura: 'warm',       responsavel: 'Ana Paula',     email: 'anderson@teixeiraauto.com.br',  telefone: '(11) 98343-4455', criado_em: '2026-04-02T10:00:00Z' },
+  { nome: 'Priscila Fernandes',   empresa: 'Fernandes Moda',         valor: 6700,  estagio: 'qualificado', temperatura: 'warm',       responsavel: 'Carlos Mendes', email: 'priscila@fernandesmoda.com.br', telefone: '(21) 98454-5566', criado_em: '2026-04-09T10:00:00Z' },
+  { nome: 'Leonardo Castro',      empresa: 'Castro Consultoria',     valor: 19000, estagio: 'negociacao',  temperatura: 'enterprise', responsavel: 'Ana Paula',     email: 'leonardo@castroconsult.com.br', telefone: '(31) 98565-6677', criado_em: '2026-04-16T10:00:00Z' },
+  { nome: 'Renata Cardoso',       empresa: 'Cardoso Decorações',     valor: 9300,  estagio: 'novo',        temperatura: 'hot',        responsavel: 'Carlos Mendes', email: 'renata@cardosodecor.com.br',    telefone: '(41) 98676-7788', criado_em: '2026-04-23T10:00:00Z' },
+  { nome: 'Gabriel Monteiro',     empresa: 'Monteiro Distribuidora', valor: 24500, estagio: 'fechado',     temperatura: 'enterprise', responsavel: 'Ana Paula',     email: 'gabriel@monteirodist.com.br',   telefone: '(51) 98787-8899', criado_em: '2026-05-05T10:00:00Z' },
+  { nome: 'Juliana Pires',        empresa: 'Pires Odontologia',      valor: 7100,  estagio: 'proposta',    temperatura: 'warm',       responsavel: 'Carlos Mendes', email: 'juliana@piresodonto.com.br',    telefone: '(62) 98898-9900', criado_em: '2026-05-13T10:00:00Z' },
+  { nome: 'Fábio Rocha',          empresa: 'Rocha Construções',      valor: 16800, estagio: 'negociacao',  temperatura: 'hot',        responsavel: 'Ana Paula',     email: 'fabio@rochaconstrucoes.com.br', telefone: '(85) 98909-0011', criado_em: '2026-05-20T10:00:00Z' },
+  { nome: 'Simone Azevedo',       empresa: 'Azevedo Joias',          valor: 13200, estagio: 'qualificado', temperatura: 'hot',        responsavel: 'Carlos Mendes', email: 'simone@azevedojoias.com.br',    telefone: '(48) 98011-1213', criado_em: '2026-05-28T10:00:00Z' },
+  { nome: 'Diego Martins',        empresa: 'Martins Fitness',        valor: 5900,  estagio: 'novo',        temperatura: 'warm',       responsavel: 'Ana Paula',     email: 'diego@martinsfitness.com.br',   telefone: '(19) 98122-1314', criado_em: '2026-06-02T10:00:00Z' },
+  { nome: 'Camila Borges',        empresa: 'Borges Pet',             valor: 4600,  estagio: 'fechado',     temperatura: 'cold',       responsavel: 'Carlos Mendes', email: 'camila@borgespet.com.br',       telefone: '(54) 98233-1415', criado_em: '2026-06-04T10:00:00Z' },
 ].map((l, i) => ({ id: `demo-${i + 1}`, criado_em: new Date().toISOString(), atualizado_em: new Date().toISOString(), ...l }));
 
 // ----- Helpers -----
@@ -193,44 +216,60 @@ function renderDashboard() {
   renderRanking();
 }
 
-// Gráfico de colunas 3D (ECharts + echarts-gl). rotulo: 'valor' (R$) ou 'qtd'.
-function grafico3D(id, labels, valores, cores, rotulo) {
-  if (typeof echarts === 'undefined') return;
+function makeChart(id, config) {
+  if (typeof Chart === 'undefined') return;
   const el = $(`#${id}`);
   if (!el) return;
-  if (!charts[id]) charts[id] = echarts.init(el);
-  const fmt = (v) => (rotulo === 'valor' ? fmtBRL(v) : String(v));
-  charts[id].setOption({
-    tooltip: { formatter: (p) => `${labels[p.data.value[0]]}: <b>${fmt(p.data.value[2])}</b>` },
-    xAxis3D: { type: 'category', data: labels, axisLabel: { textStyle: { color: '#475569', fontSize: 11 } } },
-    yAxis3D: { type: 'category', data: [''] , axisLabel: { show: false } },
-    zAxis3D: { type: 'value', axisLabel: { textStyle: { color: '#94a3b8', fontSize: 10 } } },
-    grid3D: {
-      boxWidth: 110, boxDepth: 16, boxHeight: 65,
-      viewControl: { autoRotate: true, autoRotateSpeed: 7, distance: 210, alpha: 20, beta: 30 },
-      light: { main: { intensity: 1.2, shadow: true, shadowQuality: 'high' }, ambient: { intensity: 0.35 } },
-      axisPointer: { show: false },
-    },
-    series: [{
-      type: 'bar3D',
-      shading: 'lambert',
-      barSize: 13,
-      bevelSize: 0.4,
-      data: valores.map((v, i) => ({ value: [i, 0, v], itemStyle: { color: cores[i], opacity: 0.95 } })),
-      label: { show: false },
-      emphasis: { label: { show: true, formatter: (p) => fmt(p.data.value[2]), textStyle: { color: '#0f172a', fontWeight: 'bold' } } },
-    }],
-  });
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(el, config);
 }
 
+const MESES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+
 function renderGraficos() {
-  // Valor por estágio (colunas 3D)
+  // Barras: valor por estágio
   const valores = ESTAGIOS.map((e) => leads.filter((l) => l.estagio === e.id).reduce((s, l) => s + Number(l.valor || 0), 0));
-  grafico3D('chart-estagios', ESTAGIOS.map((e) => e.titulo), valores, ESTAGIOS.map((e) => e.cor), 'valor');
-  // Leads por temperatura (colunas 3D)
+  makeChart('chart-estagios', {
+    type: 'bar',
+    data: { labels: ESTAGIOS.map((e) => e.titulo), datasets: [{ data: valores, backgroundColor: ESTAGIOS.map((e) => e.cor), borderRadius: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmtBRL(c.parsed.y) } } },
+      scales: { y: { ticks: { callback: (v) => 'R$ ' + (v / 1000) + 'k' } } },
+    },
+  });
+  // Rosca: leads por temperatura
   const temps = ['hot', 'warm', 'cold', 'enterprise'];
-  const tval = temps.map((t) => leads.filter((l) => l.temperatura === t).length);
-  grafico3D('chart-temp', ['Hot', 'Warm', 'Cold', 'Enterprise'], tval, temps.map((t) => TEMP_CORES[t]), 'qtd');
+  makeChart('chart-temp', {
+    type: 'doughnut',
+    data: { labels: ['Hot', 'Warm', 'Cold', 'Enterprise'], datasets: [{ data: temps.map((t) => leads.filter((l) => l.temperatura === t).length), backgroundColor: temps.map((t) => TEMP_CORES[t]) }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } } },
+  });
+  // Linha: faturamento por mês
+  renderFaturamento();
+}
+
+function renderFaturamento() {
+  // Soma o valor dos leads agrupado por mês de criação
+  const porMes = {};
+  leads.forEach((l) => {
+    const d = new Date(l.criado_em || Date.now());
+    if (isNaN(d.getTime())) return;
+    const chave = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    porMes[chave] = (porMes[chave] || 0) + Number(l.valor || 0);
+  });
+  const meses = Object.keys(porMes).sort();
+  const labels = meses.map((m) => { const [a, mm] = m.split('-'); return `${MESES_ABREV[Number(mm) - 1]}/${a.slice(2)}`; });
+  const valores = meses.map((m) => porMes[m]);
+  makeChart('chart-faturamento', {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'Faturamento', data: valores, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.12)', fill: true, tension: 0.35, pointBackgroundColor: '#6366f1', pointRadius: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmtBRL(c.parsed.y) } } },
+      scales: { y: { ticks: { callback: (v) => 'R$ ' + (v / 1000) + 'k' } } },
+    },
+  });
 }
 
 function renderTopVendas() {
