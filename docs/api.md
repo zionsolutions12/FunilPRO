@@ -54,7 +54,7 @@ Soft delete (marca `excluido = true`).
 ---
 
 ## `POST /webhook-estagio`
-Move um lead de estágio e registra a atividade.
+Move um lead de estágio, registra a atividade e **envia um e-mail de notificação** (SMTP Gmail) avisando da alteração no pipeline. Retorna o lead atualizado, a atividade e o status do envio (`email`).
 
 ```json
 { "lead_id": "uuid", "estagio_novo": "negociacao", "descricao": "opcional" }

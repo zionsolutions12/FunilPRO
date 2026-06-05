@@ -10,6 +10,7 @@ import {
   handleOptions,
   jsonResponse,
 } from "../_shared/utils.ts";
+import { enviarEmailMovimentacao } from "../_shared/email.ts";
 
 const ESTAGIOS = ["novo", "qualificado", "proposta", "negociacao", "fechado"];
 
@@ -68,12 +69,26 @@ Deno.serve(async (req) => {
       .single();
     if (erroAtiv) return errorResponse(erroAtiv.message, 500);
 
+    // Dispara o e-mail de notificação (não bloqueia/quebra se falhar)
+    let email: { enviado: boolean; destino?: string; motivo?: string };
+    try {
+      email = await enviarEmailMovimentacao(
+        leadAtualizado,
+        estagioAnterior,
+        body.estagio_novo,
+        atividade.descricao,
+      );
+    } catch (e) {
+      email = { enviado: false, motivo: e.message };
+    }
+
     return jsonResponse({
       mensagem: "Estágio atualizado",
       lead: leadAtualizado, // dados completos e atualizados do lead
       estagio_anterior: estagioAnterior,
       estagio_novo: body.estagio_novo,
       atividade,
+      email, // status do envio da notificação
     });
   } catch (e) {
     return errorResponse(`Erro interno: ${e.message}`, 500);

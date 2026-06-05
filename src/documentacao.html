@@ -172,7 +172,7 @@
         <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Mudança de estágio</h2>
         <div class="border border-slate-200 rounded-xl p-4 bg-white">
           <div class="flex items-center gap-2"><span class="metodo m-post">POST</span><code class="inline">/webhook-estagio</code></div>
-          <p class="text-sm text-slate-600 mt-2">Move um lead de estágio e registra a movimentação no histórico de atividades.</p>
+          <p class="text-sm text-slate-600 mt-2">Move um lead de estágio, registra a movimentação no histórico de atividades e <strong>envia um e-mail de notificação</strong> sobre a alteração no pipeline.</p>
           <table class="params mt-3"><thead><tr><th>Campo</th><th>Descrição</th></tr></thead><tbody>
             <tr><td><code class="inline">lead_id</code></td><td>Obrigatório. ID do lead.</td></tr>
             <tr><td><code class="inline">estagio_novo</code></td><td>Obrigatório. Estágio de destino.</td></tr>
