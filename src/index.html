@@ -59,7 +59,8 @@
         <span class="font-bold text-white">FunilPro</span>
       </div>
       <nav class="flex-1 px-3 py-4 space-y-1">
-        <button data-view="pipeline"      class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"><span>📊</span> Pipeline</button>
+        <button data-view="dashboard"     class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"><span>📊</span> Dashboard</button>
+        <button data-view="pipeline"      class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"><span>🗂️</span> Pipeline</button>
         <button data-view="leads"         class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"><span>👥</span> Leads</button>
         <button data-view="relatorios"    class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"><span>📈</span> Relatórios</button>
         <button data-view="configuracoes" class="nav-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium"><span>⚙️</span> Configurações</button>
@@ -101,8 +102,42 @@
       </header>
 
       <main class="flex-1 p-5 md:p-8">
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="view">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-sm text-slate-500">Visão geral do funil com dados atuais.</p>
+            <span id="dash-live" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400">
+              <span class="w-2 h-2 rounded-full bg-slate-300"></span> atualizado
+            </span>
+          </div>
+          <!-- KPIs -->
+          <div id="dash-kpis" class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6"></div>
+          <!-- Gráficos -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h3 class="font-bold text-slate-800 mb-4">Valor por estágio</h3>
+              <div style="height:260px"><canvas id="chart-estagios"></canvas></div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h3 class="font-bold text-slate-800 mb-4">Leads por temperatura</h3>
+              <div style="height:260px"><canvas id="chart-temp"></canvas></div>
+            </div>
+          </div>
+          <!-- Top vendas + ranking -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h3 class="font-bold text-slate-800 mb-4">🏆 Top 5 maiores negócios</h3>
+              <div id="dash-top" class="space-y-2"></div>
+            </div>
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h3 class="font-bold text-slate-800 mb-4">👤 Ranking por responsável</h3>
+              <div id="dash-ranking" class="space-y-3"></div>
+            </div>
+          </div>
+        </section>
+
         <!-- VIEW: PIPELINE -->
-        <section id="view-pipeline" class="view">
+        <section id="view-pipeline" class="view hidden">
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Total de Leads</p><p id="m-total" class="text-2xl font-bold text-slate-900 mt-1">—</p></div>
             <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm"><p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">Valor em Pipeline</p><p id="m-valor" class="text-2xl font-bold text-emerald-600 mt-1">—</p></div>
@@ -238,6 +273,8 @@
   <!-- ===== Toast ===== -->
   <div id="toast" class="fixed bottom-6 right-6 z-[60] hidden"><div class="bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-lg"></div></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>

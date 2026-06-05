@@ -12,6 +12,7 @@ const ESTAGIOS = [
 ];
 const TEMP_LABEL = { hot: '🔥 Hot', warm: '🌤️ Warm', cold: '❄️ Cold', enterprise: '🏢 Enterprise' };
 const TITULOS = {
+  dashboard:     ['Dashboard', 'Visão geral em tempo real'],
   pipeline:      ['Pipeline', 'Visão geral do funil'],
   leads:         ['Leads', 'Todos os contatos'],
   relatorios:    ['Relatórios', 'Métricas e insights'],
@@ -19,7 +20,10 @@ const TITULOS = {
 };
 
 let leads = [];
-let viewAtual = 'pipeline';
+let viewAtual = 'dashboard';
+let charts = {};          // instâncias do Chart.js
+let realtimeClient = null;
+let pollTimer = null;
 
 const DEMO_LEADS = [
   { nome: 'Mariana Costa',     empresa: 'Padaria Doce Sabor',     valor: 4200,  estagio: 'novo',        temperatura: 'warm',       responsavel: 'Ana Paula',     email: 'mariana.costa@padariadoce.com.br', telefone: '(11) 98765-4321' },
@@ -106,7 +110,8 @@ async function entrarNoApp() {
   $('#app').style.display = 'flex';
   preencherUsuario();
   await carregarLeads();
-  irPara('pipeline');
+  irPara('dashboard');
+  iniciarTempoReal();
 }
 
 function preencherUsuario() {
@@ -129,6 +134,7 @@ function irPara(view) {
   $('#page-sub').textContent = sub;
   fecharSidebarMobile();
 
+  if (view === 'dashboard') renderDashboard();
   if (view === 'pipeline') { renderMetricas(); renderPipeline(); }
   if (view === 'leads') renderTabelaLeads();
   if (view === 'relatorios') renderRelatorios();
@@ -152,6 +158,128 @@ async function carregarLeads() {
     toast(`Falha ao carregar: ${e.message} — usando demo`);
     leads = [...DEMO_LEADS];
   }
+}
+
+// ============================================================
+// VIEW: DASHBOARD
+// ============================================================
+const TEMP_CORES = { hot: '#ef4444', warm: '#f59e0b', cold: '#3b82f6', enterprise: '#8b5cf6' };
+
+function renderDashboard() {
+  const total = leads.length;
+  const valorPipeline = leads.reduce((s, l) => s + Number(l.valor || 0), 0);
+  const fechadosArr = leads.filter((l) => l.estagio === 'fechado');
+  const valorFechado = fechadosArr.reduce((s, l) => s + Number(l.valor || 0), 0);
+  const ticket = fechadosArr.length ? valorFechado / fechadosArr.length : 0;
+  const conversao = total ? (fechadosArr.length / total) * 100 : 0;
+
+  const kpis = [
+    ['Total de Leads', String(total), '👥', 'text-slate-900'],
+    ['Em Pipeline', fmtBRL(valorPipeline), '💰', 'text-emerald-600'],
+    ['Valor Fechado', fmtBRL(valorFechado), '✅', 'text-emerald-700'],
+    ['Conversão', `${conversao.toFixed(1)}%`, '📈', 'text-indigo-600'],
+    ['Ticket Médio', fmtBRL(ticket), '🎯', 'text-slate-900'],
+  ];
+  $('#dash-kpis').innerHTML = kpis.map(([t, v, ic, c]) => `
+    <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+      <div class="flex items-center justify-between">
+        <p class="text-xs uppercase tracking-wide text-slate-400 font-semibold">${t}</p><span>${ic}</span>
+      </div>
+      <p class="text-2xl font-bold ${c} mt-1">${v}</p>
+    </div>`).join('');
+
+  renderGraficos();
+  renderTopVendas();
+  renderRanking();
+}
+
+function makeChart(id, config) {
+  if (typeof Chart === 'undefined') return;
+  const el = $(`#${id}`);
+  if (!el) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(el, config);
+}
+
+function renderGraficos() {
+  const valores = ESTAGIOS.map((e) => leads.filter((l) => l.estagio === e.id).reduce((s, l) => s + Number(l.valor || 0), 0));
+  makeChart('chart-estagios', {
+    type: 'bar',
+    data: { labels: ESTAGIOS.map((e) => e.titulo), datasets: [{ data: valores, backgroundColor: ESTAGIOS.map((e) => e.cor), borderRadius: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmtBRL(c.parsed.y) } } },
+      scales: { y: { ticks: { callback: (v) => 'R$ ' + (v / 1000) + 'k' } } },
+    },
+  });
+  const temps = ['hot', 'warm', 'cold', 'enterprise'];
+  makeChart('chart-temp', {
+    type: 'doughnut',
+    data: { labels: ['Hot', 'Warm', 'Cold', 'Enterprise'], datasets: [{ data: temps.map((t) => leads.filter((l) => l.temperatura === t).length), backgroundColor: temps.map((t) => TEMP_CORES[t]) }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } } },
+  });
+}
+
+function renderTopVendas() {
+  const top = [...leads].sort((a, b) => Number(b.valor || 0) - Number(a.valor || 0)).slice(0, 5);
+  const est = (id) => ESTAGIOS.find((e) => e.id === id) || {};
+  $('#dash-top').innerHTML = top.map((l, i) => `
+    <div class="flex items-center gap-3 py-1.5">
+      <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center">${i + 1}</span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium text-slate-800 truncate">${escapar(l.nome)}</p>
+        <p class="text-xs text-slate-400 truncate">${escapar(l.empresa || '—')} · <span style="color:${est(l.estagio).cor}">${est(l.estagio).titulo || l.estagio}</span></p>
+      </div>
+      <span class="text-sm font-bold text-emerald-600">${fmtBRL(l.valor)}</span>
+    </div>`).join('') || '<p class="text-sm text-slate-400">Sem dados.</p>';
+}
+
+function renderRanking() {
+  const mapa = {};
+  leads.forEach((l) => { const r = l.responsavel || '—'; mapa[r] = (mapa[r] || 0) + Number(l.valor || 0); });
+  const rank = Object.entries(mapa).sort((a, b) => b[1] - a[1]);
+  const max = Math.max(1, ...rank.map((r) => r[1]));
+  $('#dash-ranking').innerHTML = rank.map(([nome, val]) => `
+    <div>
+      <div class="flex justify-between text-xs mb-1"><span class="font-medium text-slate-700">${escapar(nome)}</span><span class="text-slate-400">${fmtBRL(val)}</span></div>
+      <div class="h-2.5 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" style="width:${(val / max) * 100}%"></div></div>
+    </div>`).join('') || '<p class="text-sm text-slate-400">Sem dados.</p>';
+}
+
+// ----- Tempo real -----
+async function refreshDados() {
+  if (CONECTADO) { try { await carregarLeads(); } catch { /* mantém dados atuais */ } }
+  renderMetricas();
+  irPara(viewAtual);
+  marcarAoVivo();
+}
+
+function marcarAoVivo() {
+  const el = $('#dash-live');
+  if (!el) return;
+  const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  el.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ao vivo · ${hora}`;
+  el.className = 'inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600';
+}
+
+function iniciarTempoReal() {
+  if (!CONECTADO) return; // em modo demo não há fonte externa de mudanças
+  try {
+    if (typeof supabase !== 'undefined' && cfg.SUPABASE_URL && cfg.SUPABASE_PUBLISHABLE_KEY && !cfg.SUPABASE_URL.includes('SEU-PROJETO')) {
+      realtimeClient = supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY);
+      realtimeClient.channel('funilpro-leads')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, () => refreshDados())
+        .subscribe();
+      marcarAoVivo();
+    }
+  } catch (e) { /* cai no polling */ }
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(refreshDados, 8000); // fallback
+}
+
+function pararTempoReal() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  if (realtimeClient) { try { realtimeClient.removeAllChannels(); } catch (e) { /* ok */ } realtimeClient = null; }
 }
 
 // ============================================================
@@ -450,7 +578,7 @@ function configurarEventos() {
   $('#btn-excluir').addEventListener('click', excluirLead);
   $('#form-lead').addEventListener('submit', salvarLead);
   $('#form-perfil').addEventListener('submit', salvarPerfil);
-  $('#btn-sair').addEventListener('click', () => { Sessao.sair(); mostrarLogin(); });
+  $('#btn-sair').addEventListener('click', () => { pararTempoReal(); Sessao.sair(); mostrarLogin(); });
   $('#busca-leads').addEventListener('input', renderTabelaLeads);
   $('#filtro-estagio').addEventListener('change', renderTabelaLeads);
   $('#btn-menu').addEventListener('click', abrirSidebarMobile);

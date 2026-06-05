@@ -6,4 +6,7 @@
 window.FUNILPRO_CONFIG = {
   FUNCTIONS_URL: 'https://SEU-PROJETO.supabase.co/functions/v1',
   API_KEY: 'COLOQUE_SUA_FUNILPRO_API_KEY',
+  // Usados pelo Realtime do Dashboard (chave publishable é segura no frontend)
+  SUPABASE_URL: 'https://SEU-PROJETO.supabase.co',
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_xxxxxxxxxxxxxxxxxxxx',
 };
