@@ -89,9 +89,14 @@ Consolida várias visões num único objeto (reusa a lógica de `resumo-pipeline
 ---
 
 ## `POST /analise-ia`
-Análise do pipeline com IA (Claude/Anthropic). Requer `ANTHROPIC_API_KEY` configurada nas Edge Functions. Body pode ser vazio (`{}`).
+Monta um prompt com os dados do funil (resumo + leads parados), envia à API da Anthropic e retorna uma **análise comercial em JSON estruturado** (via tool use). Requer `ANTHROPIC_API_KEY` nas Edge Functions. Body pode ser vazio (`{}`).
 
-Retorna `{ dados: { analise, modelo, total_leads, valor_total } }`.
+Retorna `{ dados: { analise, modelo, gerado_em } }`, onde `analise` contém:
+- `resumo_executivo`
+- `leads_urgentes[]` — `{ lead, empresa, motivo, acao_recomendada, prioridade }`
+- `gargalos[]` — `{ estagio, descricao, impacto }`
+- `previsao_faturamento` — `{ valor_estimado, periodo, confianca, justificativa }`
+- `recomendacoes[]`
 
 ---
 

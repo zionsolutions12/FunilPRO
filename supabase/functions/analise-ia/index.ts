@@ -1,7 +1,9 @@
 // ============================================================
 // Edge Function: analise-ia
-// Analisa o pipeline atual com IA (Claude / Anthropic) e devolve
-// um diagnóstico em linguagem natural com recomendações.
+// Monta um prompt com os dados do funil (resumo-pipeline + relatorio-parados),
+// envia para a API da Anthropic pedindo uma análise comercial e retorna
+// um JSON ESTRUTURADO (via tool use): leads urgentes, gargalos e previsão
+// de faturamento.
 // ============================================================
 import {
   apiKeyValida,
@@ -10,9 +12,79 @@ import {
   handleOptions,
   jsonResponse,
 } from "../_shared/utils.ts";
+import { leadsParados, resumoPipeline } from "../_shared/metricas.ts";
 
-const ESTAGIOS = ["novo", "qualificado", "proposta", "negociacao", "fechado"];
-const ANTHROPIC_MODEL = "claude-sonnet-4-6";
+const MODELO = "claude-sonnet-4-6";
+
+// Schema da análise estruturada (o modelo é OBRIGADO a preencher via tool use)
+const TOOL_ANALISE = {
+  name: "registrar_analise_comercial",
+  description: "Registra a análise comercial estruturada do funil de vendas.",
+  input_schema: {
+    type: "object",
+    properties: {
+      resumo_executivo: {
+        type: "string",
+        description: "2 a 4 frases sobre a saúde geral do funil de vendas.",
+      },
+      leads_urgentes: {
+        type: "array",
+        description: "Leads que precisam de atenção imediata.",
+        items: {
+          type: "object",
+          properties: {
+            lead: { type: "string" },
+            empresa: { type: "string" },
+            motivo: { type: "string", description: "Por que é urgente." },
+            acao_recomendada: { type: "string" },
+            prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
+          },
+          required: ["lead", "motivo", "acao_recomendada", "prioridade"],
+          additionalProperties: false,
+        },
+      },
+      gargalos: {
+        type: "array",
+        description: "Pontos de travamento no funil.",
+        items: {
+          type: "object",
+          properties: {
+            estagio: { type: "string" },
+            descricao: { type: "string" },
+            impacto: { type: "string" },
+          },
+          required: ["estagio", "descricao"],
+          additionalProperties: false,
+        },
+      },
+      previsao_faturamento: {
+        type: "object",
+        description: "Previsão de faturamento com base no pipeline atual.",
+        properties: {
+          valor_estimado: { type: "number", description: "Faturamento previsto em reais." },
+          periodo: { type: "string", description: "Ex: 'próximos 30 dias'." },
+          confianca: { type: "string", enum: ["alta", "media", "baixa"] },
+          justificativa: { type: "string" },
+        },
+        required: ["valor_estimado", "periodo", "justificativa"],
+        additionalProperties: false,
+      },
+      recomendacoes: {
+        type: "array",
+        description: "Ações práticas em ordem de prioridade.",
+        items: { type: "string" },
+      },
+    },
+    required: [
+      "resumo_executivo",
+      "leads_urgentes",
+      "gargalos",
+      "previsao_faturamento",
+      "recomendacoes",
+    ],
+    additionalProperties: false,
+  },
+};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return handleOptions();
@@ -20,52 +92,38 @@ Deno.serve(async (req) => {
   if (!apiKeyValida(req)) return errorResponse("Não autorizado", 401);
 
   const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!anthropicKey) {
-    return errorResponse("ANTHROPIC_API_KEY não configurada", 500);
-  }
+  if (!anthropicKey) return errorResponse("ANTHROPIC_API_KEY não configurada", 500);
 
   const supabase = getSupabase();
 
   try {
-    // Coleta os dados do pipeline
-    const { data: leads, error } = await supabase
-      .from("leads")
-      .select("nome, empresa, valor, estagio, temperatura, responsavel")
-      .eq("excluido", false);
-    if (error) return errorResponse(error.message, 500);
+    // 1) Coleta os dados do funil (mesma lógica de resumo-pipeline e relatorio-parados)
+    const [resumo, parados] = await Promise.all([
+      resumoPipeline(supabase),
+      leadsParados(supabase, 7),
+    ]);
 
-    const lista = leads ?? [];
-    if (lista.length === 0) {
+    if (resumo.totais.total_leads === 0) {
       return errorResponse("Não há leads para analisar", 400);
     }
 
-    const resumo = ESTAGIOS.map((estagio) => {
-      const doEstagio = lista.filter((l) => l.estagio === estagio);
-      const valor = doEstagio.reduce((s, l) => s + Number(l.valor ?? 0), 0);
-      return `${estagio}: ${doEstagio.length} leads, R$ ${valor.toLocaleString("pt-BR")}`;
-    }).join("\n");
-
-    const valorTotal = lista.reduce((s, l) => s + Number(l.valor ?? 0), 0);
-
+    // 2) Monta o prompt com os dados do funil
     const prompt =
-`Você é um consultor de vendas. Analise o funil de vendas abaixo e responda em português do Brasil.
+`Você é um consultor comercial sênior. Analise os dados do funil de vendas abaixo e registre sua análise chamando a ferramenta "registrar_analise_comercial".
 
-Total de leads: ${lista.length}
-Valor total em pipeline: R$ ${valorTotal.toLocaleString("pt-BR")}
+== RESUMO DO PIPELINE ==
+${JSON.stringify(resumo, null, 2)}
 
-Distribuição por estágio:
-${resumo}
+== LEADS PARADOS (sem atividade há 7+ dias, não fechados) ==
+${JSON.stringify(parados.map((l) => ({ nome: l.nome, empresa: l.empresa, estagio: l.estagio, valor: l.valor, temperatura: l.temperatura, dias_parado: l.dias_parado })), null, 2)}
 
-Detalhe dos leads (JSON):
-${JSON.stringify(lista, null, 2)}
+Sua análise deve identificar:
+1. Leads que precisam de atenção URGENTE (priorize os "hot"/"enterprise" de alto valor parados ou em negociação/proposta).
+2. Os GARGALOS do funil (estágios com acúmulo, baixa conversão ou leads parados).
+3. A PREVISÃO DE FATURAMENTO realista para os próximos 30 dias, com base nos leads em proposta/negociação e na taxa de conversão.
+Use apenas os dados fornecidos; não invente leads. Responda em português do Brasil.`;
 
-Entregue uma análise objetiva com:
-1. Diagnóstico geral da saúde do funil (2-3 frases).
-2. Gargalos ou riscos identificados.
-3. Três ações práticas recomendadas, em ordem de prioridade.
-Use linguagem direta e acionável. Não invente dados além dos fornecidos.`;
-
-    // Chama a API da Anthropic
+    // 3) Chama a API da Anthropic forçando o uso da tool (saída estruturada)
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -74,8 +132,10 @@ Use linguagem direta e acionável. Não invente dados além dos fornecidos.`;
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 1024,
+        model: MODELO,
+        max_tokens: 2048,
+        tools: [TOOL_ANALISE],
+        tool_choice: { type: "tool", name: TOOL_ANALISE.name },
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -86,13 +146,14 @@ Use linguagem direta e acionável. Não invente dados além dos fornecidos.`;
     }
 
     const data = await resp.json();
-    const analise = data?.content?.[0]?.text ?? "Sem resposta da IA.";
+    const bloco = (data.content ?? []).find((c: { type: string }) => c.type === "tool_use");
+    if (!bloco) return errorResponse("A IA não retornou a análise estruturada", 502);
 
+    // 4) Retorna a análise estruturada
     return jsonResponse({
-      analise,
-      modelo: ANTHROPIC_MODEL,
-      total_leads: lista.length,
-      valor_total: valorTotal,
+      analise: bloco.input,
+      modelo: MODELO,
+      gerado_em: new Date().toISOString(),
     });
   } catch (e) {
     return errorResponse(`Erro interno: ${e.message}`, 500);

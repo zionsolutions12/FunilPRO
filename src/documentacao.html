@@ -203,9 +203,15 @@
         <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Análise por IA</h2>
         <div class="border border-slate-200 rounded-xl p-4 bg-white">
           <div class="flex items-center gap-2"><span class="metodo m-post">POST</span><code class="inline">/analise-ia</code></div>
-          <p class="text-sm text-slate-600 mt-2">Gera um diagnóstico do funil com IA (Claude), com pontos de atenção e ações recomendadas. O corpo pode ser vazio (<code class="inline">{}</code>).</p>
-          <pre class="mt-3"><span class="c"># resposta</span>
-{ <span class="k">"dados"</span>: { <span class="k">"analise"</span>: <span class="s">"..."</span>, <span class="k">"modelo"</span>: <span class="s">"claude-sonnet-4-6"</span> } }</pre>
+          <p class="text-sm text-slate-600 mt-2">Envia os dados do funil à API da Anthropic e retorna uma análise comercial em <strong>JSON estruturado</strong>: leads urgentes, gargalos e previsão de faturamento. Corpo pode ser vazio (<code class="inline">{}</code>).</p>
+          <pre class="mt-3"><span class="c"># resposta (resumida)</span>
+{ <span class="k">"dados"</span>: { <span class="k">"analise"</span>: {
+    <span class="k">"resumo_executivo"</span>: <span class="s">"..."</span>,
+    <span class="k">"leads_urgentes"</span>: [ ... ],
+    <span class="k">"gargalos"</span>: [ ... ],
+    <span class="k">"previsao_faturamento"</span>: { <span class="k">"valor_estimado"</span>: 0, ... },
+    <span class="k">"recomendacoes"</span>: [ ... ]
+} } }</pre>
         </div>
       </section>
 
