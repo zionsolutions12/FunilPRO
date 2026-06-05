@@ -70,7 +70,12 @@ Query param: `dias` (default 7). Retorna cada lead com `dias_parado`.
 ---
 
 ## `GET /resumo-pipeline`
-Resumo executivo: totais, ticket médio, taxa de conversão, distribuição por estágio e por temperatura.
+Indicadores do funil:
+- `por_estagio` — total de leads e valor acumulado por estágio
+- `taxa_conversao_geral` — % de leads fechados sobre o total
+- `ticket_medio_fechados` — ticket médio dos leads fechados
+- `velocidade_funil` — tempo médio (dias) entre estágios, geral e por transição (usa a tabela `atividades`)
+- `top_leads_negociacao` — maiores leads (por valor) em negociação
 
 ---
 
