@@ -1,0 +1,35 @@
+# ===== Segredos / Ambiente =====
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# ===== Dependências =====
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# ===== Build / Saída =====
+dist/
+build/
+out/
+*.log
+
+# ===== Delphi =====
+*.dcu
+*.exe
+*.~*
+__history/
+__recovery/
+Win32/
+Win64/
+
+# ===== IDE / SO =====
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
