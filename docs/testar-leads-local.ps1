@@ -1,18 +1,11 @@
 # ============================================================
-# Teste da Edge Function "leads" com curl (PowerShell)
-# Rode com:  .\docs\testar-leads.ps1
+# Testa a função "leads" rodando LOCALMENTE (http://localhost:8000).
+# Use junto com rodar-leads-local.ps1 (em outro terminal).
 # ============================================================
-
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8  # acentos corretos
+$BASE = "http://localhost:8000"
+$KEY = "fp_live_xxxxx"  # FUNILPRO_API_KEY (libera se a secret não estiver setada)
 
-# URL das Edge Functions (seu projeto)
-$BASE = "https://qsecahzfqrqdgszuqvbn.supabase.co/functions/v1"
-
-# Sua FUNILPRO_API_KEY. Se você NÃO definiu a secret FUNILPRO_API_KEY no
-# Supabase, a função libera sem checar — pode deixar qualquer valor aqui.
-$KEY = "fp_live_xxxxx"
-
-# Helper: chama a função e imprime o JSON formatado
 function Testar($titulo, $url) {
   Write-Host "`n=== $titulo ===" -ForegroundColor Cyan
   Write-Host "GET $url" -ForegroundColor DarkGray
