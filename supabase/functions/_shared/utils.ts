@@ -28,7 +28,7 @@ export function jsonResponse(dados: unknown, total?: number, status = 200) {
     : { dados };
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
   });
 }
 
@@ -36,7 +36,7 @@ export function jsonResponse(dados: unknown, total?: number, status = 200) {
 export function errorResponse(mensagem: string, codigo = 400) {
   return new Response(JSON.stringify({ erro: mensagem, codigo }), {
     status: codigo,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
   });
 }
 

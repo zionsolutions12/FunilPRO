@@ -44,11 +44,13 @@ Deno.serve(async (req) => {
       return errorResponse("O lead já está neste estágio", 400);
     }
 
-    // Atualiza o estágio do lead
-    const { error: erroUpdate } = await supabase
+    // Atualiza o estágio do lead e já recupera o registro atualizado
+    const { data: leadAtualizado, error: erroUpdate } = await supabase
       .from("leads")
       .update({ estagio: body.estagio_novo })
-      .eq("id", body.lead_id);
+      .eq("id", body.lead_id)
+      .select()
+      .single();
     if (erroUpdate) return errorResponse(erroUpdate.message, 500);
 
     // Registra a atividade de mudança de estágio
@@ -68,7 +70,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({
       mensagem: "Estágio atualizado",
-      lead_id: body.lead_id,
+      lead: leadAtualizado, // dados completos e atualizados do lead
       estagio_anterior: estagioAnterior,
       estagio_novo: body.estagio_novo,
       atividade,
