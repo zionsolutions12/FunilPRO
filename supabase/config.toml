@@ -1,0 +1,26 @@
+# ============================================================
+# Configuração do projeto Supabase (FunilPro)
+# ============================================================
+project_id = "qsecahzfqrqdgszuqvbn"
+
+# As Edge Functions têm autenticação própria (x-api-key / JWT da tabela
+# usuarios), por isso desligamos a verificação de JWT do gateway do Supabase.
+# Assim dá pra chamar via curl sem precisar do token do Supabase.
+
+[functions.auth]
+verify_jwt = false
+
+[functions.leads]
+verify_jwt = false
+
+[functions.webhook-estagio]
+verify_jwt = false
+
+[functions.relatorio-parados]
+verify_jwt = false
+
+[functions.resumo-pipeline]
+verify_jwt = false
+
+[functions.analise-ia]
+verify_jwt = false

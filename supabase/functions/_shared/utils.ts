@@ -11,12 +11,14 @@ export const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 };
 
-// Cliente Supabase com a SECRET KEY (acesso total — só no backend)
+// Cliente Supabase com chave de acesso total (só no backend).
+// Em produção o Supabase injeta SUPABASE_SERVICE_ROLE_KEY automaticamente
+// (não é permitido criar secrets com prefixo SUPABASE_). Localmente, cai
+// no SUPABASE_SECRET_KEY do .env.
 export function getSupabase() {
-  return createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SECRET_KEY") ?? "",
-  );
+  const chave = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+    Deno.env.get("SUPABASE_SECRET_KEY") ?? "";
+  return createClient(Deno.env.get("SUPABASE_URL") ?? "", chave);
 }
 
 // Resposta JSON padronizada de sucesso

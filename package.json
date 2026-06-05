@@ -1,0 +1,27 @@
+{
+  "name": "funilpro",
+  "version": "1.0.0",
+  "description": "Mini CRM de funil de vendas com pipeline visual de 5 estágios, métricas automáticas e análise por IA. Projeto educacional (\"Do Zero ao Deploy\" — Kommo Brasil / GHL Brasil).",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zionsolutions12/FunilPRO.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zionsolutions12/FunilPRO/issues"
+  },
+  "homepage": "https://github.com/zionsolutions12/FunilPRO#readme",
+  "devDependencies": {
+    "supabase": "^2.105.0"
+  }
+}
