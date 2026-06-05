@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FunilPro — Documentação da API</title>
+  <link rel="icon" type="image/png" href="assets/logo-icon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; scroll-behavior: smooth; }
+    .metodo { font-size: .7rem; font-weight: 700; padding: .15rem .5rem; border-radius: .375rem; letter-spacing: .02em; }
+    .m-get    { background:#dcfce7; color:#15803d; }
+    .m-post   { background:#dbeafe; color:#1d4ed8; }
+    .m-put    { background:#fef3c7; color:#b45309; }
+    .m-delete { background:#fee2e2; color:#b91c1c; }
+    pre { background:#0f172a; color:#e2e8f0; border-radius:.6rem; padding:1rem; overflow-x:auto; font-size:.8rem; line-height:1.5; }
+    pre .k { color:#7dd3fc; } pre .s { color:#86efac; } pre .c { color:#64748b; }
+    code.inline { background:#f1f5f9; color:#4338ca; padding:.1rem .35rem; border-radius:.3rem; font-size:.85em; }
+    .toc-link { display:block; padding:.3rem .5rem; border-radius:.4rem; color:#475569; font-size:.875rem; }
+    .toc-link:hover { background:#eef2ff; color:#4338ca; }
+    table.params { width:100%; font-size:.85rem; border-collapse:collapse; }
+    table.params th { text-align:left; color:#64748b; font-weight:600; font-size:.7rem; text-transform:uppercase; letter-spacing:.03em; padding:.4rem .6rem; border-bottom:1px solid #e2e8f0; }
+    table.params td { padding:.5rem .6rem; border-bottom:1px solid #f1f5f9; vertical-align:top; }
+    .endpoint { scroll-margin-top:1.5rem; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+  <!-- Topbar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20">
+    <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2.5">
+        <img src="assets/logo-icon.png" alt="FunilPro" class="w-9 h-9 rounded-lg shadow-sm" />
+        <div>
+          <p class="font-bold text-slate-900 leading-none">FunilPro</p>
+          <p class="text-xs text-slate-400">Documentação da API</p>
+        </div>
+      </a>
+      <a href="index.html" class="text-sm font-medium text-indigo-600 hover:text-indigo-700">← Voltar ao app</a>
+    </div>
+  </header>
+
+  <div class="max-w-6xl mx-auto px-6 py-8 flex gap-8">
+
+    <!-- TOC -->
+    <aside class="hidden lg:block w-56 flex-shrink-0">
+      <nav class="sticky top-20 space-y-1">
+        <p class="text-xs uppercase tracking-wide text-slate-400 font-bold px-2 mb-1">Conteúdo</p>
+        <a class="toc-link" href="#visao-geral">Visão geral</a>
+        <a class="toc-link" href="#autenticacao">Autenticação</a>
+        <a class="toc-link" href="#leads">Leads</a>
+        <a class="toc-link" href="#webhook">Mudança de estágio</a>
+        <a class="toc-link" href="#relatorios">Relatórios</a>
+        <a class="toc-link" href="#ia">Análise por IA</a>
+        <a class="toc-link" href="#referencia">Referência</a>
+      </nav>
+    </aside>
+
+    <!-- Conteúdo -->
+    <main class="flex-1 min-w-0 space-y-12">
+
+      <!-- Hero -->
+      <section>
+        <h1 class="text-3xl font-bold text-slate-900">API do FunilPro</h1>
+        <p class="mt-2 text-slate-600 max-w-2xl">Referência pública dos endpoints do FunilPro — um mini CRM de funil de vendas. Use esta API para gerenciar leads, registrar movimentações no funil e obter relatórios e análises.</p>
+      </section>
+
+      <!-- Visão geral -->
+      <section id="visao-geral" class="endpoint space-y-4">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Visão geral</h2>
+        <div>
+          <h3 class="font-semibold text-slate-700">URL base</h3>
+          <pre><span class="s">https://qsecahzfqrqdgszuqvbn.supabase.co/functions/v1</span></pre>
+        </div>
+        <div>
+          <h3 class="font-semibold text-slate-700">Autenticação</h3>
+          <p class="text-sm text-slate-600 mt-1">Todas as chamadas exigem o cabeçalho <code class="inline">x-api-key</code> com a sua chave da API. Endpoints de sessão também aceitam <code class="inline">Authorization: Bearer &lt;token&gt;</code>.</p>
+          <pre><span class="c"># em toda requisição</span>
+<span class="k">x-api-key:</span> sua-api-key</pre>
+        </div>
+        <div>
+          <h3 class="font-semibold text-slate-700">Formato das respostas</h3>
+          <div class="grid sm:grid-cols-2 gap-3 mt-2">
+            <div>
+              <p class="text-xs text-slate-500 mb-1">Sucesso</p>
+              <pre>{
+  <span class="k">"dados"</span>: [ ... ],
+  <span class="k">"total"</span>: 13
+}</pre>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 mb-1">Erro</p>
+              <pre>{
+  <span class="k">"erro"</span>: <span class="s">"mensagem"</span>,
+  <span class="k">"codigo"</span>: 400
+}</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Autenticação -->
+      <section id="autenticacao" class="endpoint space-y-5">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Autenticação</h2>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-post">POST</span><code class="inline">/auth/registrar</code></div>
+          <p class="text-sm text-slate-600 mt-2">Cria um novo usuário e retorna o token de sessão.</p>
+          <table class="params mt-3"><thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead><tbody>
+            <tr><td><code class="inline">nome</code></td><td>string</td><td>Obrigatório.</td></tr>
+            <tr><td><code class="inline">email</code></td><td>string</td><td>Obrigatório, único.</td></tr>
+            <tr><td><code class="inline">senha</code></td><td>string</td><td>Obrigatório, mín. 6 caracteres.</td></tr>
+          </tbody></table>
+          <pre class="mt-3"><span class="c"># resposta</span>
+{ <span class="k">"dados"</span>: { <span class="k">"usuario"</span>: {...}, <span class="k">"token"</span>: <span class="s">"eyJ..."</span> } }</pre>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-post">POST</span><code class="inline">/auth/login</code></div>
+          <p class="text-sm text-slate-600 mt-2">Autentica com <code class="inline">email</code> e <code class="inline">senha</code>. Retorna o usuário e um token JWT (validade 8h).</p>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-get">GET</span><code class="inline">/auth/me</code></div>
+          <p class="text-sm text-slate-600 mt-2">Retorna o usuário logado. Requer <code class="inline">Authorization: Bearer &lt;token&gt;</code>.</p>
+        </div>
+      </section>
+
+      <!-- Leads -->
+      <section id="leads" class="endpoint space-y-5">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Leads</h2>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-get">GET</span><code class="inline">/leads</code></div>
+          <p class="text-sm text-slate-600 mt-2">Lista todos os leads ativos, dos mais recentes para os mais antigos.</p>
+          <table class="params mt-3"><thead><tr><th>Parâmetro (query)</th><th>Descrição</th></tr></thead><tbody>
+            <tr><td><code class="inline">estagio</code></td><td>Filtra por estágio (ver referência).</td></tr>
+            <tr><td><code class="inline">valor_minimo</code></td><td>Apenas leads com <code class="inline">valor</code> ≥ ao informado.</td></tr>
+            <tr><td><code class="inline">responsavel</code></td><td>Filtra pelo nome do responsável.</td></tr>
+          </tbody></table>
+          <pre class="mt-3"><span class="c"># exemplo</span>
+<span class="k">curl</span> <span class="s">"https://qsecahzfqrqdgszuqvbn.supabase.co/functions/v1/leads?estagio=proposta&valor_minimo=5000"</span> \
+  -H <span class="s">"x-api-key: sua-api-key"</span></pre>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-post">POST</span><code class="inline">/leads</code></div>
+          <p class="text-sm text-slate-600 mt-2">Cria um lead. Campo obrigatório: <code class="inline">nome</code>.</p>
+          <pre class="mt-3">{
+  <span class="k">"nome"</span>: <span class="s">"Fulano de Tal"</span>,
+  <span class="k">"email"</span>: <span class="s">"fulano@empresa.com"</span>,
+  <span class="k">"empresa"</span>: <span class="s">"Empresa X"</span>,
+  <span class="k">"valor"</span>: 5000,
+  <span class="k">"estagio"</span>: <span class="s">"novo"</span>,
+  <span class="k">"temperatura"</span>: <span class="s">"hot"</span>
+}</pre>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-put">PUT</span><code class="inline">/leads/:id</code></div>
+          <p class="text-sm text-slate-600 mt-2">Atualiza os campos informados de um lead.</p>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-delete">DELETE</span><code class="inline">/leads/:id</code></div>
+          <p class="text-sm text-slate-600 mt-2">Remoção lógica (soft delete) — marca <code class="inline">excluido = true</code>.</p>
+        </div>
+      </section>
+
+      <!-- Webhook -->
+      <section id="webhook" class="endpoint space-y-5">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Mudança de estágio</h2>
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-post">POST</span><code class="inline">/webhook-estagio</code></div>
+          <p class="text-sm text-slate-600 mt-2">Move um lead de estágio e registra a movimentação no histórico de atividades.</p>
+          <table class="params mt-3"><thead><tr><th>Campo</th><th>Descrição</th></tr></thead><tbody>
+            <tr><td><code class="inline">lead_id</code></td><td>Obrigatório. ID do lead.</td></tr>
+            <tr><td><code class="inline">estagio_novo</code></td><td>Obrigatório. Estágio de destino.</td></tr>
+            <tr><td><code class="inline">descricao</code></td><td>Opcional. Texto da atividade.</td></tr>
+          </tbody></table>
+        </div>
+      </section>
+
+      <!-- Relatórios -->
+      <section id="relatorios" class="endpoint space-y-5">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Relatórios</h2>
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-get">GET</span><code class="inline">/resumo-pipeline</code></div>
+          <p class="text-sm text-slate-600 mt-2">Resumo executivo: totais, ticket médio, taxa de conversão e distribuição por estágio e temperatura.</p>
+        </div>
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-get">GET</span><code class="inline">/relatorio-parados</code></div>
+          <p class="text-sm text-slate-600 mt-2">Leads sem atividade recente (não fechados). Parâmetro <code class="inline">dias</code> (padrão 7). Cada lead vem com <code class="inline">dias_parado</code>.</p>
+        </div>
+      </section>
+
+      <!-- IA -->
+      <section id="ia" class="endpoint space-y-5">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Análise por IA</h2>
+        <div class="border border-slate-200 rounded-xl p-4 bg-white">
+          <div class="flex items-center gap-2"><span class="metodo m-post">POST</span><code class="inline">/analise-ia</code></div>
+          <p class="text-sm text-slate-600 mt-2">Gera um diagnóstico do funil com IA (Claude), com pontos de atenção e ações recomendadas. O corpo pode ser vazio (<code class="inline">{}</code>).</p>
+          <pre class="mt-3"><span class="c"># resposta</span>
+{ <span class="k">"dados"</span>: { <span class="k">"analise"</span>: <span class="s">"..."</span>, <span class="k">"modelo"</span>: <span class="s">"claude-sonnet-4-6"</span> } }</pre>
+        </div>
+      </section>
+
+      <!-- Referência -->
+      <section id="referencia" class="endpoint space-y-5">
+        <h2 class="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">Referência</h2>
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div class="border border-slate-200 rounded-xl p-4 bg-white">
+            <h3 class="font-semibold text-slate-700 mb-2">Estágios do funil</h3>
+            <ul class="text-sm text-slate-600 space-y-1">
+              <li><code class="inline">novo</code></li>
+              <li><code class="inline">qualificado</code></li>
+              <li><code class="inline">proposta</code></li>
+              <li><code class="inline">negociacao</code></li>
+              <li><code class="inline">fechado</code></li>
+            </ul>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 bg-white">
+            <h3 class="font-semibold text-slate-700 mb-2">Temperaturas</h3>
+            <ul class="text-sm text-slate-600 space-y-1">
+              <li>🔥 <code class="inline">hot</code></li>
+              <li>🌤️ <code class="inline">warm</code></li>
+              <li>❄️ <code class="inline">cold</code></li>
+              <li>🏢 <code class="inline">enterprise</code></li>
+            </ul>
+          </div>
+          <div class="border border-slate-200 rounded-xl p-4 bg-white sm:col-span-2">
+            <h3 class="font-semibold text-slate-700 mb-2">Códigos de status</h3>
+            <table class="params"><tbody>
+              <tr><td><code class="inline">200</code> / <code class="inline">201</code></td><td>Sucesso</td></tr>
+              <tr><td><code class="inline">400</code></td><td>Requisição inválida (campos faltando/errados)</td></tr>
+              <tr><td><code class="inline">401</code></td><td>Não autorizado (api-key ou token inválido)</td></tr>
+              <tr><td><code class="inline">404</code></td><td>Recurso não encontrado</td></tr>
+              <tr><td><code class="inline">500</code></td><td>Erro interno</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </section>
+
+      <footer class="pt-6 border-t border-slate-200 text-sm text-slate-400">
+        FunilPro · Mini CRM de Funil de Vendas — Documentação da API
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

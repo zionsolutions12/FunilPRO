@@ -444,7 +444,7 @@ function fecharSidebarMobile() { if (window.innerWidth < 768) { $('#sidebar').cl
 // INICIALIZAÇÃO
 // ============================================================
 function configurarEventos() {
-  $$('.nav-link').forEach((l) => l.addEventListener('click', () => irPara(l.dataset.view)));
+  $$('.nav-link').forEach((l) => { if (l.dataset.view) l.addEventListener('click', () => irPara(l.dataset.view)); });
   $('#btn-novo').addEventListener('click', () => abrirModalLead());
   $('#btn-ia').addEventListener('click', analisarIA);
   $('#btn-excluir').addEventListener('click', excluirLead);
