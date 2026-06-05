@@ -115,12 +115,12 @@
           <!-- Gráficos -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-              <h3 class="font-bold text-slate-800 mb-4">Valor por estágio</h3>
-              <div style="height:260px"><canvas id="chart-estagios"></canvas></div>
+              <h3 class="font-bold text-slate-800 mb-4">Valor por estágio <span class="text-xs font-normal text-slate-400">· 3D, arraste para girar</span></h3>
+              <div id="chart-estagios" style="height:300px"></div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-              <h3 class="font-bold text-slate-800 mb-4">Leads por temperatura</h3>
-              <div style="height:260px"><canvas id="chart-temp"></canvas></div>
+              <h3 class="font-bold text-slate-800 mb-4">Leads por temperatura <span class="text-xs font-normal text-slate-400">· 3D</span></h3>
+              <div id="chart-temp" style="height:300px"></div>
             </div>
           </div>
           <!-- Top vendas + ranking -->
@@ -273,7 +273,8 @@
   <!-- ===== Toast ===== -->
   <div id="toast" class="fixed bottom-6 right-6 z-[60] hidden"><div class="bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-lg"></div></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth.js"></script>

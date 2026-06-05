@@ -193,31 +193,44 @@ function renderDashboard() {
   renderRanking();
 }
 
-function makeChart(id, config) {
-  if (typeof Chart === 'undefined') return;
+// Gráfico de colunas 3D (ECharts + echarts-gl). rotulo: 'valor' (R$) ou 'qtd'.
+function grafico3D(id, labels, valores, cores, rotulo) {
+  if (typeof echarts === 'undefined') return;
   const el = $(`#${id}`);
   if (!el) return;
-  if (charts[id]) charts[id].destroy();
-  charts[id] = new Chart(el, config);
+  if (!charts[id]) charts[id] = echarts.init(el);
+  const fmt = (v) => (rotulo === 'valor' ? fmtBRL(v) : String(v));
+  charts[id].setOption({
+    tooltip: { formatter: (p) => `${labels[p.data.value[0]]}: <b>${fmt(p.data.value[2])}</b>` },
+    xAxis3D: { type: 'category', data: labels, axisLabel: { textStyle: { color: '#475569', fontSize: 11 } } },
+    yAxis3D: { type: 'category', data: [''] , axisLabel: { show: false } },
+    zAxis3D: { type: 'value', axisLabel: { textStyle: { color: '#94a3b8', fontSize: 10 } } },
+    grid3D: {
+      boxWidth: 110, boxDepth: 16, boxHeight: 65,
+      viewControl: { autoRotate: true, autoRotateSpeed: 7, distance: 210, alpha: 20, beta: 30 },
+      light: { main: { intensity: 1.2, shadow: true, shadowQuality: 'high' }, ambient: { intensity: 0.35 } },
+      axisPointer: { show: false },
+    },
+    series: [{
+      type: 'bar3D',
+      shading: 'lambert',
+      barSize: 13,
+      bevelSize: 0.4,
+      data: valores.map((v, i) => ({ value: [i, 0, v], itemStyle: { color: cores[i], opacity: 0.95 } })),
+      label: { show: false },
+      emphasis: { label: { show: true, formatter: (p) => fmt(p.data.value[2]), textStyle: { color: '#0f172a', fontWeight: 'bold' } } },
+    }],
+  });
 }
 
 function renderGraficos() {
+  // Valor por estágio (colunas 3D)
   const valores = ESTAGIOS.map((e) => leads.filter((l) => l.estagio === e.id).reduce((s, l) => s + Number(l.valor || 0), 0));
-  makeChart('chart-estagios', {
-    type: 'bar',
-    data: { labels: ESTAGIOS.map((e) => e.titulo), datasets: [{ data: valores, backgroundColor: ESTAGIOS.map((e) => e.cor), borderRadius: 6 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmtBRL(c.parsed.y) } } },
-      scales: { y: { ticks: { callback: (v) => 'R$ ' + (v / 1000) + 'k' } } },
-    },
-  });
+  grafico3D('chart-estagios', ESTAGIOS.map((e) => e.titulo), valores, ESTAGIOS.map((e) => e.cor), 'valor');
+  // Leads por temperatura (colunas 3D)
   const temps = ['hot', 'warm', 'cold', 'enterprise'];
-  makeChart('chart-temp', {
-    type: 'doughnut',
-    data: { labels: ['Hot', 'Warm', 'Cold', 'Enterprise'], datasets: [{ data: temps.map((t) => leads.filter((l) => l.temperatura === t).length), backgroundColor: temps.map((t) => TEMP_CORES[t]) }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom' } } },
-  });
+  const tval = temps.map((t) => leads.filter((l) => l.temperatura === t).length);
+  grafico3D('chart-temp', ['Hot', 'Warm', 'Cold', 'Enterprise'], tval, temps.map((t) => TEMP_CORES[t]), 'qtd');
 }
 
 function renderTopVendas() {
@@ -586,6 +599,7 @@ function configurarEventos() {
   $$('[data-fechar]').forEach((b) => b.addEventListener('click', fecharModais));
   $$('#modal-lead, #modal-ia').forEach((m) => m.addEventListener('click', (e) => { if (e.target === m) fecharModais(); }));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharModais(); });
+  window.addEventListener('resize', () => { Object.values(charts).forEach((c) => { try { c.resize(); } catch (e) { /* ok */ } }); });
 
   const badge = $('#badge-modo');
   if (CONECTADO) { badge.textContent = 'conectado'; badge.className = 'ml-1 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700'; }
