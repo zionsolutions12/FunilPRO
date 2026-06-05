@@ -91,3 +91,21 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== Menu lateral ===== */
+.nav-link {
+  color: #cbd5e1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.nav-link:hover {
+  background: #1e293b;
+  color: #fff;
+}
+.nav-link.ativo {
+  background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+}
+
+/* App escondido até o login (controlado via JS) */
+#app { display: none; }

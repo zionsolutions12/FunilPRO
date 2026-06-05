@@ -4,6 +4,7 @@
 .env.*.local
 *.key
 *.pem
+src/config.js
 
 # ===== Dependências =====
 node_modules/

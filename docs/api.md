@@ -12,6 +12,21 @@ Formato de resposta:
 
 ---
 
+## Autenticação
+
+### `POST /auth/registrar`
+Cria um usuário. Body: `{ "nome", "email", "senha" }` (senha mín. 6 caracteres). Retorna `{ dados: { usuario, token } }`.
+
+### `POST /auth/login`
+Autentica. Body: `{ "email", "senha" }`. Retorna `{ dados: { usuario, token } }`.
+
+### `GET /auth/me`
+Retorna o usuário logado. Header: `Authorization: Bearer <token>`.
+
+> Senhas são gravadas como hash **PBKDF2**. A sessão usa **JWT HS256** (8h), assinado com `JWT_SECRET`.
+
+---
+
 ## Leads
 
 ### `GET /leads`

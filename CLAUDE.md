@@ -83,6 +83,26 @@ funilpro/
 | estagio_novo   | text         | Estágio depois da mudança (se aplicável)         |
 | criado_em      | timestamptz  | Data da atividade (default: now())               |
 
+### Tabela: usuarios
+
+| Coluna       | Tipo        | Descrição                                      |
+|--------------|-------------|------------------------------------------------|
+| id           | uuid (PK)   | Identificador único                            |
+| nome         | text        | Nome do usuário                                |
+| email        | text        | Email (único)                                  |
+| senha_hash   | text        | Hash PBKDF2 da senha (NUNCA em texto puro)     |
+| papel        | text        | admin, gestor ou vendedor                      |
+| ativo        | boolean     | Conta ativa (default: true)                    |
+| criado_em    | timestamptz | Data de criação                                |
+| ultimo_login | timestamptz | Último login                                   |
+
+## Autenticação
+
+- Login próprio via Edge Function `auth` (`/auth/registrar`, `/auth/login`, `/auth/me`).
+- Senhas com **PBKDF2 (SHA-256, salt aleatório)** — nunca em texto puro.
+- Sessão por **JWT HS256** (8h), assinado com `JWT_SECRET`; o frontend envia `Authorization: Bearer <token>`.
+- Frontend exige login antes de exibir o app; em modo demo usa usuários locais (localStorage).
+
 ## Variáveis de Ambiente (.env)
 
 > Este projeto usa o **novo formato de chaves do Supabase**: `sb_publishable_…` (substitui a antiga `anon key`, segura para o frontend) e `sb_secret_…` (substitui a `service_role key`, exclusiva de backend).
@@ -93,6 +113,7 @@ SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxx
 SUPABASE_SECRET_KEY=sb_secret_xxxxx
 ANTHROPIC_API_KEY=sk-ant-...
 FUNILPRO_API_KEY=fp_live_xxxxx
+JWT_SECRET=segredo-aleatorio-forte
 ```
 
 ## Regras de Segurança — OBRIGATÓRIAS
@@ -135,6 +156,7 @@ O projeto usa 13 leads fictícios com nomes brasileiros realistas, distribuídos
 
 ### Edge Functions (Supabase)
 ```bash
+supabase functions deploy auth
 supabase functions deploy leads
 supabase functions deploy webhook-estagio
 supabase functions deploy relatorio-parados
