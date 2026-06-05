@@ -579,39 +579,135 @@ async function excluirLead() {
 }
 
 // ============================================================
-// ANÁLISE IA
+// ANÁLISE IA (chama a Edge Function analise-ia, render estruturado)
 // ============================================================
 async function analisarIA() {
-  $('#modal-ia').classList.add('modal-show');
-  const alvo = $('#ia-conteudo');
-  alvo.textContent = 'Analisando o pipeline...';
-  if (CONECTADO) {
-    try { const { dados } = await api('analise-ia', { method: 'POST', body: '{}' }); alvo.textContent = dados.analise || 'Sem resposta.'; }
-    catch (e) { alvo.textContent = `Não foi possível obter a análise da IA: ${e.message}`; }
-  } else {
-    alvo.textContent = analiseLocalDemo();
+  if (viewAtual !== 'dashboard') irPara('dashboard');
+  const alvo = $('#ia-resultado');
+  $('#btn-analisar').disabled = true;
+  alvo.innerHTML = '<p class="text-sm text-slate-400 py-8 text-center">Analisando o funil com IA… ⏳</p>';
+  try {
+    let analise;
+    if (CONECTADO) {
+      const { dados } = await api('analise-ia', { method: 'POST', body: '{}' });
+      analise = dados.analise;
+    } else {
+      await new Promise((r) => setTimeout(r, 700)); // simula a latência da IA
+      analise = analiseDemoEstruturada();
+    }
+    renderAnaliseIA(analise);
+    if (!CONECTADO) {
+      alvo.insertAdjacentHTML('beforeend', '<p class="text-xs text-slate-400 mt-4 text-center">— modo demo: análise gerada localmente. Conecte as Edge Functions para a análise real com IA.</p>');
+    }
+  } catch (e) {
+    alvo.innerHTML = `<p class="text-sm text-red-600 py-6 text-center">Não foi possível obter a análise: ${escapar(e.message)}</p>`;
+  } finally {
+    $('#btn-analisar').disabled = false;
   }
 }
 
-function analiseLocalDemo() {
+function renderAnaliseIA(a) {
+  if (!a) { $('#ia-resultado').innerHTML = '<p class="text-sm text-slate-400 py-6 text-center">Sem análise.</p>'; return; }
+  const prioCor = { alta: 'bg-red-100 text-red-700', media: 'bg-amber-100 text-amber-700', baixa: 'bg-slate-100 text-slate-600' };
+  const confCor = { alta: 'text-emerald-700', media: 'text-amber-600', baixa: 'text-red-600' };
+
+  const urgentes = (a.leads_urgentes || []).map((l) => `
+    <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+      <div class="flex items-start justify-between gap-2">
+        <p class="font-semibold text-sm text-slate-800">${escapar(l.lead)}${l.empresa ? ` <span class="font-normal text-slate-500">· ${escapar(l.empresa)}</span>` : ''}</p>
+        <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${prioCor[l.prioridade] || prioCor.baixa}">${escapar(l.prioridade || '')}</span>
+      </div>
+      <p class="text-xs text-slate-600 mt-1">${escapar(l.motivo || '')}</p>
+      ${l.acao_recomendada ? `<p class="text-xs text-red-700 mt-1.5">▶ ${escapar(l.acao_recomendada)}</p>` : ''}
+    </div>`).join('') || '<p class="text-sm text-slate-400">Nenhum lead urgente. 🎉</p>';
+
+  const gargalos = (a.gargalos || []).map((g) => `
+    <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+      <p class="font-semibold text-sm text-amber-800">${escapar(g.estagio || '')}</p>
+      <p class="text-xs text-slate-600 mt-1">${escapar(g.descricao || '')}</p>
+      ${g.impacto ? `<p class="text-xs text-amber-700 mt-1">Impacto: ${escapar(g.impacto)}</p>` : ''}
+    </div>`).join('') || '<p class="text-sm text-slate-400">Sem gargalos relevantes.</p>';
+
+  const p = a.previsao_faturamento || {};
+  const recs = (a.recomendacoes || []).map((r, i) => `
+    <div class="rounded-lg border border-slate-200 bg-white p-3 flex gap-2.5 items-start">
+      <span class="w-6 h-6 flex-shrink-0 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center">${i + 1}</span>
+      <p class="text-xs text-slate-700 leading-relaxed">${escapar(String(r).replace(/^\d+\.\s*/, ''))}</p>
+    </div>`).join('');
+
+  $('#ia-resultado').innerHTML = `
+    <p class="text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4">${escapar(a.resumo_executivo || '')}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
+      <div class="lg:col-span-2">
+        <h4 class="font-bold text-red-700 text-sm mb-2">🚨 Alertas — leads urgentes</h4>
+        <div class="space-y-2 max-h-80 overflow-y-auto pr-1">${urgentes}</div>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <h4 class="font-bold text-emerald-700 text-sm mb-2">💰 Previsão de faturamento</h4>
+          <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <p class="text-2xl font-bold text-emerald-700">${fmtBRL(p.valor_estimado || 0)}</p>
+            <p class="text-xs text-emerald-600 mt-0.5">${escapar(p.periodo || '')} · confiança <span class="font-semibold ${confCor[p.confianca] || ''}">${escapar(p.confianca || '—')}</span></p>
+            ${p.justificativa ? `<p class="text-xs text-slate-600 mt-2 leading-relaxed">${escapar(p.justificativa)}</p>` : ''}
+          </div>
+        </div>
+        <div>
+          <h4 class="font-bold text-amber-700 text-sm mb-2">🚧 Gargalos</h4>
+          <div class="space-y-2 max-h-64 overflow-y-auto pr-1">${gargalos}</div>
+        </div>
+      </div>
+    </div>
+    <h4 class="font-bold text-slate-800 text-sm mb-2">✅ Ações recomendadas</h4>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${recs}</div>`;
+}
+
+// Análise estruturada local (modo demo) — mesmo formato da Edge Function
+function analiseDemoEstruturada() {
   const total = leads.length;
   const valorTotal = leads.reduce((s, l) => s + Number(l.valor || 0), 0);
-  const porEstagio = Object.fromEntries(ESTAGIOS.map((e) => [e.id, leads.filter((l) => l.estagio === e.id).length]));
-  const fechados = porEstagio.fechado || 0;
-  const conversao = total ? ((fechados / total) * 100).toFixed(1) : 0;
-  const gargalo = ESTAGIOS.filter((e) => e.id !== 'fechado').sort((a, b) => porEstagio[b.id] - porEstagio[a.id])[0];
-  return [
-    '📊 Diagnóstico geral',
-    `Seu funil tem ${total} leads somando ${fmtBRL(valorTotal)} em oportunidades, com taxa de conversão de ${conversao}%.`,
-    '', '⚠️ Pontos de atenção',
-    `• Maior concentração no estágio "${gargalo.titulo}" (${porEstagio[gargalo.id]} leads) — risco de gargalo.`,
-    `• ${porEstagio.negociacao || 0} negócios em negociação aguardando fechamento.`,
-    '', '✅ Ações recomendadas',
-    '1. Priorize follow-up dos leads "hot" parados em proposta/negociação.',
-    '2. Reaqueça os leads "cold" no topo do funil com conteúdo de valor.',
-    '3. Defina meta de avanço semanal por estágio para destravar o gargalo.',
-    '', '— (modo demo: análise local. Conecte as Edge Functions + ANTHROPIC_API_KEY para a análise real com IA.)',
-  ].join('\n');
+  const fechados = leads.filter((l) => l.estagio === 'fechado');
+  const conversao = total ? (fechados.length / total) * 100 : 0;
+
+  const urgentes = leads
+    .filter((l) => ['negociacao', 'proposta'].includes(l.estagio) && ['hot', 'enterprise'].includes(l.temperatura))
+    .sort((a, b) => Number(b.valor || 0) - Number(a.valor || 0))
+    .slice(0, 6)
+    .map((l) => ({
+      lead: l.nome,
+      empresa: l.empresa,
+      motivo: `Lead ${l.temperatura} de ${fmtBRL(l.valor)} em ${l.estagio} — alto valor, priorize o follow-up.`,
+      acao_recomendada: 'Contato imediato para destravar e definir o próximo passo com prazo.',
+      prioridade: Number(l.valor || 0) >= 12000 ? 'alta' : 'media',
+    }));
+
+  const cont = {};
+  leads.forEach((l) => { if (l.estagio !== 'fechado') cont[l.estagio] = (cont[l.estagio] || 0) + 1; });
+  const garg = Object.entries(cont).sort((a, b) => b[1] - a[1])[0];
+  const tituloEst = (id) => (ESTAGIOS.find((e) => e.id === id) || {}).titulo || id;
+  const gargalos = garg
+    ? [{ estagio: tituloEst(garg[0]), descricao: `${garg[1]} leads acumulados neste estágio sem avançar.`, impacto: 'Receita represada e risco de esfriamento dos leads.' }]
+    : [];
+
+  const valNeg = leads.filter((l) => l.estagio === 'negociacao').reduce((s, l) => s + Number(l.valor || 0), 0);
+  const valProp = leads.filter((l) => l.estagio === 'proposta').reduce((s, l) => s + Number(l.valor || 0), 0);
+
+  return {
+    resumo_executivo: `Funil com ${total} leads e ${fmtBRL(valorTotal)} em pipeline, conversão de ${conversao.toFixed(1)}%. Há oportunidades quentes que precisam de ação para não esfriar.`,
+    leads_urgentes: urgentes,
+    gargalos,
+    previsao_faturamento: {
+      valor_estimado: Math.round(valNeg * 0.35 + valProp * 0.2),
+      periodo: 'próximos 30 dias',
+      confianca: 'media',
+      justificativa: '35% sobre o valor em negociação + 20% sobre as propostas em aberto.',
+    },
+    recomendacoes: [
+      'Priorizar follow-up dos leads quentes em negociação e proposta.',
+      'Criar um SLA: nenhum lead parado por mais de 3 dias em negociação.',
+      'Reaquecer os leads "cold" no topo do funil com conteúdo de valor.',
+      'Avançar os qualificados de alto valor para proposta em até 48h.',
+    ],
+  };
 }
 
 // ============================================================
@@ -627,6 +723,7 @@ function configurarEventos() {
   $$('.nav-link').forEach((l) => { if (l.dataset.view) l.addEventListener('click', () => irPara(l.dataset.view)); });
   $('#btn-novo').addEventListener('click', () => abrirModalLead());
   $('#btn-ia').addEventListener('click', analisarIA);
+  $('#btn-analisar').addEventListener('click', analisarIA);
   $('#btn-excluir').addEventListener('click', excluirLead);
   $('#form-lead').addEventListener('submit', salvarLead);
   $('#form-perfil').addEventListener('submit', salvarPerfil);
