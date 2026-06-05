@@ -1,9 +1,9 @@
 // ============================================================
 // Edge Function: analise-ia
 // Monta um prompt com os dados do funil (resumo-pipeline + relatorio-parados),
-// envia para a API da Anthropic pedindo uma análise comercial e retorna
-// um JSON ESTRUTURADO (via tool use): leads urgentes, gargalos e previsão
-// de faturamento.
+// envia para o OpenRouter (API compatível com OpenAI) pedindo uma análise
+// comercial e retorna JSON ESTRUTURADO via function calling:
+// leads urgentes, gargalos e previsão de faturamento.
 // ============================================================
 import {
   apiKeyValida,
@@ -14,76 +14,56 @@ import {
 } from "../_shared/utils.ts";
 import { leadsParados, resumoPipeline } from "../_shared/metricas.ts";
 
-const MODELO = "claude-sonnet-4-6";
+// Modelo no OpenRouter (configurável). Ex: anthropic/claude-opus-4.8
+const MODELO_PADRAO = "anthropic/claude-sonnet-4.6";
 
-// Schema da análise estruturada (o modelo é OBRIGADO a preencher via tool use)
-const TOOL_ANALISE = {
-  name: "registrar_analise_comercial",
-  description: "Registra a análise comercial estruturada do funil de vendas.",
-  input_schema: {
-    type: "object",
-    properties: {
-      resumo_executivo: {
-        type: "string",
-        description: "2 a 4 frases sobre a saúde geral do funil de vendas.",
-      },
-      leads_urgentes: {
-        type: "array",
-        description: "Leads que precisam de atenção imediata.",
-        items: {
-          type: "object",
-          properties: {
-            lead: { type: "string" },
-            empresa: { type: "string" },
-            motivo: { type: "string", description: "Por que é urgente." },
-            acao_recomendada: { type: "string" },
-            prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
-          },
-          required: ["lead", "motivo", "acao_recomendada", "prioridade"],
-          additionalProperties: false,
-        },
-      },
-      gargalos: {
-        type: "array",
-        description: "Pontos de travamento no funil.",
-        items: {
-          type: "object",
-          properties: {
-            estagio: { type: "string" },
-            descricao: { type: "string" },
-            impacto: { type: "string" },
-          },
-          required: ["estagio", "descricao"],
-          additionalProperties: false,
-        },
-      },
-      previsao_faturamento: {
+// JSON Schema da análise (o modelo é OBRIGADO a preencher via function calling)
+const SCHEMA_ANALISE = {
+  type: "object",
+  properties: {
+    resumo_executivo: { type: "string", description: "2 a 4 frases sobre a saúde geral do funil." },
+    leads_urgentes: {
+      type: "array",
+      description: "Leads que precisam de atenção imediata.",
+      items: {
         type: "object",
-        description: "Previsão de faturamento com base no pipeline atual.",
         properties: {
-          valor_estimado: { type: "number", description: "Faturamento previsto em reais." },
-          periodo: { type: "string", description: "Ex: 'próximos 30 dias'." },
-          confianca: { type: "string", enum: ["alta", "media", "baixa"] },
-          justificativa: { type: "string" },
+          lead: { type: "string" },
+          empresa: { type: "string" },
+          motivo: { type: "string", description: "Por que é urgente." },
+          acao_recomendada: { type: "string" },
+          prioridade: { type: "string", enum: ["alta", "media", "baixa"] },
         },
-        required: ["valor_estimado", "periodo", "justificativa"],
-        additionalProperties: false,
-      },
-      recomendacoes: {
-        type: "array",
-        description: "Ações práticas em ordem de prioridade.",
-        items: { type: "string" },
+        required: ["lead", "motivo", "acao_recomendada", "prioridade"],
       },
     },
-    required: [
-      "resumo_executivo",
-      "leads_urgentes",
-      "gargalos",
-      "previsao_faturamento",
-      "recomendacoes",
-    ],
-    additionalProperties: false,
+    gargalos: {
+      type: "array",
+      description: "Pontos de travamento no funil.",
+      items: {
+        type: "object",
+        properties: {
+          estagio: { type: "string" },
+          descricao: { type: "string" },
+          impacto: { type: "string" },
+        },
+        required: ["estagio", "descricao"],
+      },
+    },
+    previsao_faturamento: {
+      type: "object",
+      description: "Previsão de faturamento com base no pipeline atual.",
+      properties: {
+        valor_estimado: { type: "number", description: "Faturamento previsto em reais." },
+        periodo: { type: "string", description: "Ex: 'próximos 30 dias'." },
+        confianca: { type: "string", enum: ["alta", "media", "baixa"] },
+        justificativa: { type: "string" },
+      },
+      required: ["valor_estimado", "periodo", "justificativa"],
+    },
+    recomendacoes: { type: "array", description: "Ações práticas em ordem de prioridade.", items: { type: "string" } },
   },
+  required: ["resumo_executivo", "leads_urgentes", "gargalos", "previsao_faturamento", "recomendacoes"],
 };
 
 Deno.serve(async (req) => {
@@ -91,8 +71,9 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return errorResponse("Método não suportado", 405);
   if (!apiKeyValida(req)) return errorResponse("Não autorizado", 401);
 
-  const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!anthropicKey) return errorResponse("ANTHROPIC_API_KEY não configurada", 500);
+  const orKey = Deno.env.get("OPENROUTER_API_KEY");
+  if (!orKey) return errorResponse("OPENROUTER_API_KEY não configurada", 500);
+  const modelo = Deno.env.get("OPENROUTER_MODEL") ?? MODELO_PADRAO;
 
   const supabase = getSupabase();
 
@@ -102,14 +83,13 @@ Deno.serve(async (req) => {
       resumoPipeline(supabase),
       leadsParados(supabase, 7),
     ]);
-
     if (resumo.totais.total_leads === 0) {
       return errorResponse("Não há leads para analisar", 400);
     }
 
     // 2) Monta o prompt com os dados do funil
     const prompt =
-`Você é um consultor comercial sênior. Analise os dados do funil de vendas abaixo e registre sua análise chamando a ferramenta "registrar_analise_comercial".
+`Você é um consultor comercial sênior. Analise os dados do funil de vendas abaixo e registre sua análise chamando a função "registrar_analise_comercial".
 
 == RESUMO DO PIPELINE ==
 ${JSON.stringify(resumo, null, 2)}
@@ -123,38 +103,57 @@ Sua análise deve identificar:
 3. A PREVISÃO DE FATURAMENTO realista para os próximos 30 dias, com base nos leads em proposta/negociação e na taxa de conversão.
 Use apenas os dados fornecidos; não invente leads. Responda em português do Brasil.`;
 
-    // 3) Chama a API da Anthropic forçando o uso da tool (saída estruturada)
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    // 3) Chama o OpenRouter forçando a função (saída estruturada)
+    const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-api-key": anthropicKey,
-        "anthropic-version": "2023-06-01",
+        "authorization": `Bearer ${orKey}`,
+        "X-Title": "FunilPro",
       },
       body: JSON.stringify({
-        model: MODELO,
-        max_tokens: 2048,
-        tools: [TOOL_ANALISE],
-        tool_choice: { type: "tool", name: TOOL_ANALISE.name },
+        model: modelo,
+        max_tokens: 4096,
         messages: [{ role: "user", content: prompt }],
+        tools: [{
+          type: "function",
+          function: {
+            name: "registrar_analise_comercial",
+            description: "Registra a análise comercial estruturada do funil de vendas.",
+            parameters: SCHEMA_ANALISE,
+          },
+        }],
+        tool_choice: { type: "function", function: { name: "registrar_analise_comercial" } },
       }),
     });
 
     if (!resp.ok) {
       const detalhe = await resp.text();
-      return errorResponse(`Erro na API da Anthropic: ${detalhe}`, 502);
+      return errorResponse(`Erro no OpenRouter: ${detalhe}`, 502);
     }
 
     const data = await resp.json();
-    const bloco = (data.content ?? []).find((c: { type: string }) => c.type === "tool_use");
-    if (!bloco) return errorResponse("A IA não retornou a análise estruturada", 502);
+    const escolha = data?.choices?.[0];
+    const call = escolha?.message?.tool_calls?.[0];
+    if (!call?.function?.arguments) {
+      return errorResponse(
+        `A IA não retornou a análise estruturada (finish=${escolha?.finish_reason}; content=${String(escolha?.message?.content ?? "").slice(0, 200)})`,
+        502,
+      );
+    }
+
+    let analise: unknown;
+    try {
+      analise = JSON.parse(call.function.arguments);
+    } catch {
+      return errorResponse(
+        `Resposta da IA não é um JSON válido (finish=${escolha?.finish_reason}; args=${String(call.function.arguments).slice(0, 300)})`,
+        502,
+      );
+    }
 
     // 4) Retorna a análise estruturada
-    return jsonResponse({
-      analise: bloco.input,
-      modelo: MODELO,
-      gerado_em: new Date().toISOString(),
-    });
+    return jsonResponse({ analise, modelo, gerado_em: new Date().toISOString() });
   } catch (e) {
     return errorResponse(`Erro interno: ${e.message}`, 500);
   }
