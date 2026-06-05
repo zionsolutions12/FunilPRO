@@ -162,6 +162,7 @@ supabase functions deploy webhook-estagio
 supabase functions deploy relatorio-parados
 supabase functions deploy resumo-pipeline
 supabase functions deploy analise-ia
+supabase functions deploy dashboard-consolidado
 ```
 
 ### Frontend (Vercel)

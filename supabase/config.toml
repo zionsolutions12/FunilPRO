@@ -24,3 +24,6 @@ verify_jwt = false
 
 [functions.analise-ia]
 verify_jwt = false
+
+[functions.dashboard-consolidado]
+verify_jwt = false

@@ -79,6 +79,15 @@ Indicadores do funil:
 
 ---
 
+## `GET /dashboard-consolidado`
+Consolida várias visões num único objeto (reusa a lógica de `resumo-pipeline` e `relatorio-parados`):
+- `visao_geral_funil` — o mesmo resumo do `resumo-pipeline`
+- `leads_parados` — leads parados (param `dias_parado`, default 7)
+- `historico_movimentacao_30dias` — mudanças de estágio dos últimos 30 dias
+- `ticket_medio_por_estagio` — valor médio dos leads em cada estágio
+
+---
+
 ## `POST /analise-ia`
 Análise do pipeline com IA (Claude/Anthropic). Requer `ANTHROPIC_API_KEY` configurada nas Edge Functions. Body pode ser vazio (`{}`).
 
