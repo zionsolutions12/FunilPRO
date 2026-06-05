@@ -40,12 +40,21 @@ export function errorResponse(mensagem: string, codigo = 400) {
   });
 }
 
-// Valida a API key interna (header x-api-key)
+// Comparação em tempo constante (evita timing attacks na checagem da key)
+function igualSeguro(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+// Valida o header x-api-key contra a FUNILPRO_API_KEY do ambiente (.env).
+// Fail-closed: sem a chave configurada OU sem header, bloqueia.
 export function apiKeyValida(req: Request): boolean {
   const esperada = Deno.env.get("FUNILPRO_API_KEY");
-  // Se a chave não estiver configurada no ambiente, não bloqueia (modo dev)
-  if (!esperada) return true;
-  return req.headers.get("x-api-key") === esperada;
+  const recebida = req.headers.get("x-api-key");
+  if (!esperada || !recebida) return false;
+  return igualSeguro(recebida, esperada);
 }
 
 // Atalho: responde ao preflight CORS
